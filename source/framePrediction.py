@@ -77,15 +77,16 @@ def data_generator(isTrain = True, batchSize = 10):
 
 # input image dimensions
 img_rows, img_cols = 448, 640
-input_shape = (img_rows, img_cols, 6)
+input_shape = (img_rows, img_cols, 7)
 
 # initialize the model
-model = model_ini.model_overall_shared_old(input_shape)
+model = model_ini.model_fill_hole(input_shape)
 
 model.compile(loss=utility.my_loss,
               metrics=[utility.metric_L1_real],
               optimizer=keras.optimizers.Adadelta())
 
+index_org = sio.loadmat('Shuffled_index.mat')
 #model.load_weights('./trained_models/model_epoch_3.hdf5')
 
 #for i in range(20):
@@ -97,8 +98,8 @@ loss = np.empty(shape=(40, 37))
 
 for i in range(1, 40):
 
-    history = model.fit_generator(utility.data_generator(isTrain = True, isGAN = False, close_far_all = 4, batchSize = 10), steps_per_epoch = 4000, epochs = 1)
-    loss[i] = model.evaluate_generator(utility.data_generator(isTrain = False, isGAN = False, close_far_all = 4, batchSize = 20), steps = 250)
+    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 4000, epochs = 1)
+    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 250)
     filename = '../../exp_data/trained_models/model_epoch_' + str(i) + '.hdf5'
     model.save_weights(filename)
     filename = '../../exp_data/trained_models/model_epoch_train' + str(i)

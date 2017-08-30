@@ -9,10 +9,12 @@ import tensorflow as tf
 from keras import backend as K
 import matplotlib.pyplot as plt
 
-trainn = 102899
-val = 5287
+trainn = 26000
+val = 8000
 train_path = '/media/mjia/Data/SUN3D/train/'
 val_path = '/media/mjia/Data/SUN3D/val/'
+data_path = '/media/mjia/Seagate Backup Plus Drive/SUN3D/train/'
+
 
 def loadDataGAN(index, index_begin, batchSize, path, image_mean):
     x = np.empty(shape=(batchSize, 448, 640, 6))
@@ -449,19 +451,52 @@ def loadData_edge(index, index_begin, batchSize, path, image_mean):
 
     return (x,y)
 
-def data_generator(isTrain = True, isGAN = True, close_far_all = 0, batchSize = 10):
+def loadData_fill_hole(index, index_begin, batchSize, path, image_mean):
+    x = np.empty(shape=(batchSize, 448, 640, 7))
+    yy = np.empty(shape=(448, 640))
+    y1 = np.empty(shape=(batchSize, 224, 320, 1))
+    y2 = np.empty(shape=(batchSize, 112, 160, 1))
+    y3 = np.empty(shape=(batchSize, 56, 80, 1))
+    y4 = np.empty(shape=(batchSize, 28, 40, 1))
+    y5 = np.empty(shape=(batchSize, 14, 20, 1))
+    y6 = np.empty(shape=(batchSize, 7, 10, 1))
+    for i in range(batchSize):
+        number_of_file = str(index[0][index_begin+i])
+        filename = path + number_of_file.zfill(7) + '.mat'
+        xx = sio.loadmat(filename)
+        x[i,:,:,0:3] = xx['Data']['image'][0][0][0][0][16:464,:,:] - image_mean      #for evaluate the monocular
+        x[i,:,:,3:6] = xx['Data']['image'][0][0][0][1][16:464,:,:] - image_mean
+        x[i,:,:,6] = xx['Data']['depth'][0][0][0][1][16:464,:]*17
+        yy = xx['Data']['filled_depth'][0][0][16:464,:]
+        yy = yy.astype('float32')
+        y1[i, :, :, 0] = pyrDown(yy)
+        y2[i, :, :, 0] = pyrDown(y1[i, :, :, 0])
+        y3[i, :, :, 0] = pyrDown(y2[i, :, :, 0])
+        y4[i, :, :, 0] = pyrDown(y3[i, :, :, 0])
+        y5[i, :, :, 0] = pyrDown(y4[i, :, :, 0])
+        y6[i, :, :, 0] = pyrDown(y5[i, :, :, 0])
+
+    x = x.astype('float32')
+    x /= 255
+
+    y = [y6, y5, y4, y3, y2, y1]
+
+    return (x, y)
+
+
+def data_generator(index_org, isTrain = True, isGAN = True, close_far_all = 0, batchSize = 10):
     image_mean = np.zeros(shape=(448, 640, 3))
     image_mean[:,:,0] = 114*np.ones(shape=(448, 640))
     image_mean[:,:,1] = 105*np.ones(shape=(448, 640))
     image_mean[:,:,2] = 97*np.ones(shape=(448, 640))
     if isTrain:
-        path = train_path
-        index = [[i] for i in range(1,trainn)]
+        path = data_path
+        index = index_org[0:trainn]
         shuffle(index)
     else:
-        index = [[i] for i in range(1,val)]
+        index = index_org[trainn:val]
+        path = data_path
         shuffle(index)
-        path = val_path
 
     i = 0
     while(True):
@@ -484,6 +519,7 @@ def data_generator(isTrain = True, isGAN = True, close_far_all = 0, batchSize = 
             elif close_far_all == 4:
                 yield loadData_edge(index, i, batchSize, path, image_mean)
             elif close_far_all == 5:
+                yield loadData_fill_hole(index, i, batchSize, path, image_mean)
                 
 
         i = i + batchSize
