@@ -98,8 +98,8 @@ loss = np.empty(shape=(40, 37))
 
 for i in range(1, 40):
 
-    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 4000, epochs = 1)
-    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 250)
+    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 2600, epochs = 1)
+    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 800)
     filename = '../../exp_data/trained_models/model_epoch_' + str(i) + '.hdf5'
     model.save_weights(filename)
     filename = '../../exp_data/trained_models/model_epoch_train' + str(i)
