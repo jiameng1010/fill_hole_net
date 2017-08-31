@@ -461,7 +461,7 @@ def loadData_fill_hole(index, index_begin, batchSize, path, image_mean):
     y5 = np.empty(shape=(batchSize, 14, 20, 1))
     y6 = np.empty(shape=(batchSize, 7, 10, 1))
     for i in range(batchSize):
-        number_of_file = str(index[0][index_begin+i])
+        number_of_file = str(index[index_begin+i])
         filename = path + number_of_file.zfill(7) + '.mat'
         xx = sio.loadmat(filename)
         x[i,:,:,0:3] = xx['Data']['image'][0][0][0][0][16:464,:,:] - image_mean      #for evaluate the monocular
@@ -491,10 +491,10 @@ def data_generator(index_org, isTrain = True, isGAN = True, close_far_all = 0, b
     image_mean[:,:,2] = 97*np.ones(shape=(448, 640))
     if isTrain:
         path = data_path
-        index = index_org[0:trainn]
+        index = index_org[0, 0:trainn]
         shuffle(index)
     else:
-        index = index_org[trainn:val]
+        index = index_org[0, trainn:(val+trainn)]
         path = data_path
         shuffle(index)
 

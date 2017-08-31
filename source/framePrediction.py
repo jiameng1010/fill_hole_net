@@ -94,18 +94,18 @@ index_org = sio.loadmat('Shuffled_index.mat')
   #  filename = './trained_models/model_epoch_' + str(i) + '.hdf5'
    # model.save_weights(filename)
 #plot_model(model, to_file='./trained_models/model.png')
-loss = np.empty(shape=(40, 37))
+loss = np.empty(shape=(40, 13))
 
 for i in range(1, 40):
 
-    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 2600, epochs = 1)
-    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 800)
-    filename = '../../exp_data/trained_models/model_epoch_' + str(i) + '.hdf5'
+    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 2599, epochs = 1)
+    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 399)
+    filename = '../exp_data/trained_models/model_epoch_' + str(i) + '.hdf5'
     model.save_weights(filename)
-    filename = '../../exp_data/trained_models/model_epoch_train' + str(i)
+    filename = '../exp_data/trained_models/model_epoch_train' + str(i)
     np.save(filename, history.history)
-    filename = '../../exp_data/trained_models/model_epoch_val' + str(i)
+    filename = '../exp_data/trained_models/model_epoch_val' + str(i)
     np.save(filename, loss[i])
 
 print('\n')
-np.save('../../exp_data/trained_models/loss', loss)
+np.save('../exp_data/trained_models/loss', loss)
