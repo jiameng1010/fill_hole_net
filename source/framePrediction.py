@@ -77,7 +77,7 @@ def data_generator(isTrain = True, batchSize = 10):
 
 # input image dimensions
 img_rows, img_cols = 448, 640
-input_shape = (img_rows, img_cols, 7)
+input_shape = (img_rows, img_cols, 4)
 
 # initialize the model
 model = model_ini.model_fill_hole(input_shape)
@@ -86,8 +86,10 @@ model.compile(loss=utility.my_loss,
               metrics=[utility.metric_L1_real],
               optimizer=keras.optimizers.Adadelta())
 
+#model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adam())
+
 index_org = sio.loadmat('Shuffled_index.mat')
-#model.load_weights('./trained_models/model_epoch_3.hdf5')
+model.load_weights('./trained_models/model_epoch_29.hdf5')
 
 #for i in range(20):
  #   model = train.train_epoch(model)
@@ -96,7 +98,7 @@ index_org = sio.loadmat('Shuffled_index.mat')
 #plot_model(model, to_file='./trained_models/model.png')
 loss = np.empty(shape=(40, 13))
 
-for i in range(1, 40):
+for i in range(30, 40):
 
     history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 2599, epochs = 1)
     loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 399)
