@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from random import shuffle
+from numpy.random import shuffle
 
 import cv2
 import numpy as np
@@ -13,7 +13,7 @@ trainn = 26000
 val = 8000
 train_path = '/media/mjia/Data/SUN3D/train/'
 val_path = '/media/mjia/Data/SUN3D/val/'
-data_path = '/media/mjia/Seagate Backup Plus Drive/SUN3D/train/'
+data_path = '/media/mjia/FC12F23A12F1FA0A/SUN3D/train/'
 
 
 def loadDataGAN(index, index_begin, batchSize, path, image_mean):
@@ -461,13 +461,14 @@ def loadData_fill_hole(index, index_begin, batchSize, path, image_mean):
     y5 = np.empty(shape=(batchSize, 14, 20, 1))
     y6 = np.empty(shape=(batchSize, 7, 10, 1))
     for i in range(batchSize):
-        number_of_file = str(index[index_begin+i])
+        number_of_file = str(index[index_begin+i, 0])
         filename = path + number_of_file.zfill(7) + '.mat'
+        print(filename)
         xx = sio.loadmat(filename)
         x[i,:,:,0:3] = xx['Data']['image'][0][0][0][0][16:464,:,:] - image_mean      #for evaluate the monocular
         #x[i,:,:,3:6] = xx['Data']['image'][0][0][0][1][16:464,:,:] - image_mean
         x[i,:,:,3] = xx['Data']['depth'][0][0][0][1][16:464,:]*51
-        yy = xx['Data']['filled_depth'][0][0][16:464,:]
+        yy = xx['Data']['filled_depth'][0][0][16:464,:]# - xx['Data']['depth'][0][0][0][0][16:464,:]
         yy = yy.astype('float32')
         y1[i, :, :, 0] = pyrDown(yy)
         y2[i, :, :, 0] = pyrDown(y1[i, :, :, 0])
@@ -524,12 +525,15 @@ def data_generator(index_org, isTrain = True, isGAN = True, close_far_all = 0, b
     image_mean[:,:,0] = 114*np.ones(shape=(448, 640))
     image_mean[:,:,1] = 105*np.ones(shape=(448, 640))
     image_mean[:,:,2] = 97*np.ones(shape=(448, 640))
+
+    index_all = sio.loadmat('train_val_test_index.mat');
+
     if isTrain:
         path = data_path
-        index = index_org[0, 0:trainn]
+        index = index_all['train_index'].transpose()
         shuffle(index)
     else:
-        index = index_org[0, trainn:(val+trainn)]
+        index = index_all['val_index'].transpose()
         path = data_path
         shuffle(index)
 

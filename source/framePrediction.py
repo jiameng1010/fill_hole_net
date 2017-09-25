@@ -16,8 +16,11 @@ import model_ini
 trainn = 14409
 val = 750
 
+def my_loss_hole(y_true, y_pred):
+    return K.mean(tf.div(tf.multiply(K.square(y_pred - y_true), y_true), tf.add(y_true, 1e-9*tf.ones_like(y_true))), axis=-1)
+
 def my_loss(y_true, y_pred):
-    return K.mean(tf.div(tf.multiply(K.square(y_pred - y_true), y_true), tf.add(y_true, 1e-6*tf.ones_like(y_true))), axis=-1)
+    return K.mean(tf.div(tf.multiply(K.square(y_pred - y_true), y_true), tf.add(y_true, 1e-9*tf.ones_like(y_true))), axis=-1)
     #return K.mean(tf.multiply(K.square(y_pred - y_true), tf.div(y_true, y_true)), axis=-1)
 
 def metric_L1_real(y_true, y_pred):
@@ -89,7 +92,7 @@ model.compile(loss=utility.my_loss,
 #model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adam())
 
 index_org = sio.loadmat('Shuffled_index.mat')
-model.load_weights('./trained_models/model_epoch_29.hdf5')
+#model.load_weights('./trained_models/model_epoch_29.hdf5')
 
 #for i in range(20):
  #   model = train.train_epoch(model)
@@ -98,10 +101,10 @@ model.load_weights('./trained_models/model_epoch_29.hdf5')
 #plot_model(model, to_file='./trained_models/model.png')
 loss = np.empty(shape=(40, 13))
 
-for i in range(30, 40):
+for i in range(1, 40):
 
-    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 2599, epochs = 1)
-    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 399)
+    history = model.fit_generator(utility.data_generator(index_org['index'], isTrain = True, isGAN = False, close_far_all = 5, batchSize = 10), steps_per_epoch = 5000, epochs = 1)
+    loss[i] = model.evaluate_generator(utility.data_generator(index_org['index'], isTrain = False, isGAN = False, close_far_all = 5, batchSize = 20), steps = 400)
     filename = '../exp_data/trained_models/model_epoch_' + str(i) + '.hdf5'
     model.save_weights(filename)
     filename = '../exp_data/trained_models/model_epoch_train' + str(i)
