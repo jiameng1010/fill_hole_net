@@ -13,7 +13,7 @@ trainn = 26000
 val = 8000
 train_path = '/media/mjia/Data/SUN3D/train/'
 val_path = '/media/mjia/Data/SUN3D/val/'
-data_path = '/media/mjia/FC12F23A12F1FA0A/SUN3D/train/'
+data_path = '/media/mjia/Data/SUN3D/train/'
 
 
 def loadDataGAN(index, index_begin, batchSize, path, image_mean):
@@ -451,6 +451,41 @@ def loadData_edge(index, index_begin, batchSize, path, image_mean):
 
     return (x,y)
 
+def loadData_fill_hole_run(index, index_begin, batchSize, path, image_mean):
+    x = np.empty(shape=(batchSize, 448, 640, 4))
+    name = np.empty(shape=(batchSize, 1))
+    yy = np.empty(shape=(448, 640))
+    y1 = np.empty(shape=(batchSize, 224, 320, 1))
+    y2 = np.empty(shape=(batchSize, 112, 160, 1))
+    y3 = np.empty(shape=(batchSize, 56, 80, 1))
+    y4 = np.empty(shape=(batchSize, 28, 40, 1))
+    y5 = np.empty(shape=(batchSize, 14, 20, 1))
+    y6 = np.empty(shape=(batchSize, 7, 10, 1))
+    for i in range(batchSize):
+        number_of_file = str(index[index_begin+i, 0])
+        filename = path + number_of_file.zfill(7) + '.mat'
+        print(filename)
+        name[i, 0] = index[index_begin+i, 0]
+        xx = sio.loadmat(filename)
+        x[i,:,:,0:3] = xx['Data']['image'][0][0][0][0][16:464,:,:] - image_mean      #for evaluate the monocular
+        #x[i,:,:,3:6] = xx['Data']['image'][0][0][0][1][16:464,:,:] - image_mean
+        x[i,:,:,3] = xx['Data']['filled_depth'][0][0][16:464,:]*51
+        yy = xx['Data']['filled_depth'][0][0][16:464,:]# - xx['Data']['depth'][0][0][0][0][16:464,:]
+        yy = yy.astype('float32')
+        y1[i, :, :, 0] = pyrDown(yy)
+        y2[i, :, :, 0] = pyrDown(y1[i, :, :, 0])
+        y3[i, :, :, 0] = pyrDown(y2[i, :, :, 0])
+        y4[i, :, :, 0] = pyrDown(y3[i, :, :, 0])
+        y5[i, :, :, 0] = pyrDown(y4[i, :, :, 0])
+        y6[i, :, :, 0] = pyrDown(y5[i, :, :, 0])
+
+    x = x.astype('float32')
+    x /= 255
+
+    y = [y6/5, y5/5, y4/5, y3/5, y2/5, y1/5]
+
+    return (x, y, name)
+
 def loadData_fill_hole(index, index_begin, batchSize, path, image_mean):
     x = np.empty(shape=(batchSize, 448, 640, 4))
     yy = np.empty(shape=(448, 640))
@@ -558,7 +593,7 @@ def data_generator(index_org, isTrain = True, isGAN = True, close_far_all = 0, b
             elif close_far_all == 4:
                 yield loadData_edge(index, i, batchSize, path, image_mean)
             elif close_far_all == 5:
-                yield loadData_fill_hole(index, i, batchSize, path, image_mean)
+                yield loadData_fill_hole_run(index, i, batchSize, path, image_mean)
             elif close_far_all == 6:
                 yield loadData_predict_hole(index, i, batchSize, path, image_mean)
                 
