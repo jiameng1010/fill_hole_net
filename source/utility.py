@@ -530,10 +530,10 @@ def data_generator(index_org, isTrain = True, isGAN = True, close_far_all = 0, b
 
     if isTrain:
         path = data_path
-        index = index_all['train_index'].transpose()
+        index = index_all['total'].transpose()
         shuffle(index)
     else:
-        index = index_all['val_index'].transpose()
+        index = index_all['total'].transpose()
         path = data_path
         shuffle(index)
 
